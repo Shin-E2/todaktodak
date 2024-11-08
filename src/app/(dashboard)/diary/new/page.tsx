@@ -30,7 +30,7 @@ const emotions = [
     borderColor: "border-red-400",
     textColor: "text-red-800",
     description: "화가 나거나 짜증나는 감정",
-    image: "/images/angry.png",
+    image: "/images/angry.svg",
   },
   {
     id: "anxious",
