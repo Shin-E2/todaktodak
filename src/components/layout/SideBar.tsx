@@ -1,5 +1,6 @@
 import { useRouter, usePathname } from "next/navigation";
 import { Calendar, BarChart2, User, BookOpen, BookHeart } from "lucide-react";
+import Image from "next/image";
 
 interface NavItem {
   icon: React.ElementType;
@@ -24,12 +25,13 @@ export default function SideBar() {
       <div className="flex flex-col h-full">
         {/* Logo */}
         <div className="px-6 py-8">
-          <h1
+          <Image
+            src="/images/todak_logo.png"
+            width={40}
+            height={40}
+            alt="logo"
             onClick={() => router.push("/home")}
-            className="text-2xl font-bold text-indigo-600 cursor-pointer"
-          >
-            토닥토닥
-          </h1>
+          />
         </div>
 
         {/* Navigation */}
