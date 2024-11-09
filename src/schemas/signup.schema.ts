@@ -30,11 +30,11 @@ export const signupSchema = z
     passwordConfirm: z.string(),
 
     // 주소
-    address: z.object({
+/*     address: z.object({
       zoneCode: z.string().min(1, "우편번호를 입력해주세요"),
       address: z.string().min(1, "주소를 입력해주세요"),
       detailAddress: z.string().min(1, "상세주소를 입력해주세요"),
-    }),
+    }), */
 
     // 프로필 이미지
     profileImage: z.string().nullable(),

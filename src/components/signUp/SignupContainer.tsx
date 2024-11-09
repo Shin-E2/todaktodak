@@ -22,9 +22,9 @@ const SIGNUP_STEPS = [
       "email",
       "password",
       "passwordConfirm",
-      "address.zoneCode",
+      /*       "address.zoneCode",
       "address.address",
-      "address.detailAddress",
+      "address.detailAddress", */
     ],
   },
   {
@@ -50,11 +50,11 @@ export function SignupContainer() {
       email: "",
       password: "",
       passwordConfirm: "",
-      address: {
+      /*       address: {
         zoneCode: "",
         address: "",
         detailAddress: "",
-      },
+      }, */
       profileImage: null,
     },
   });
