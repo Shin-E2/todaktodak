@@ -1,58 +1,67 @@
 import { useFormContext } from "react-hook-form";
-import Image from "next/image";
-import { useRef, useState } from "react";
-import type { SignupFormValues } from "@/schemas/signup.schema";
-import { X } from "lucide-react";
+import { useRef, useState, useEffect } from "react";
+import { ProfileImagePreview } from "@/components/profile/ProfileImagePreview";
+import { optimizeImage } from "@/utils/imageUtils";
+import type { SignupFormValues } from "@/schemas/auth.schema";
 
-// 기본 프로필 이미지 경로
-const DEFAULT_PROFILE_IMAGE = "/images/default-profile.png";
+export const DEFAULT_PROFILE_IMAGE = `/images/default-profile.png`;
 
 export function ProfileStep() {
-  // React Hook Form의 메서드들을 가져옴
   const { setValue } = useFormContext<SignupFormValues>();
-
-  // 파일 입력을 위한 ref
   const fileRef = useRef<HTMLInputElement>(null);
-
-  // 선택된 이미지 파일 상태
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
-  // 삭제 아이콘 표시 여부 상태
-  const [showDeleteIcon, setShowDeleteIcon] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState(DEFAULT_PROFILE_IMAGE);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  // 이미지 클릭 시 파일 선택 다이얼로그 표시
+  useEffect(() => {
+    setValue("image", DEFAULT_PROFILE_IMAGE);
+  }, [setValue]);
+
   const handleImageClick = () => {
-    fileRef.current?.click();
+    if (!isProcessing) {
+      fileRef.current?.click();
+    }
   };
 
-  // 파일 선택 시 처리
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // 이미지 파일 유효성 검사
-    if (!file.type.includes("image/")) {
-      alert("이미지 파일만 업로드 가능합니다.");
-      return;
-    }
+    try {
+      if (!file.type.includes("image/")) {
+        alert("이미지 파일만 업로드 가능합니다.");
+        return;
+      }
 
-    // 파일 크기 제한 (5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      alert("파일 크기는 5MB 이하여야 합니다.");
-      return;
-    }
+      if (file.size > 5 * 1024 * 1024) {
+        alert("파일 크기는 5MB 이하여야 합니다.");
+        return;
+      }
 
-    // 선택된 이미지 설정
-    setSelectedImage(file);
-    // 폼 데이터에 이미지 설정
-    setValue("profileImage", file);
+      setIsProcessing(true);
+
+      // 이미지 최적화 및 Base64 변환
+      const base64String = await optimizeImage(file);
+
+      setSelectedImage(file);
+      setPreviewUrl(base64String);
+      setValue("image", base64String);
+    } catch (error) {
+      console.error("이미지 처리 중 오류:", error);
+      alert("이미지 처리 중 오류가 발생했습니다.");
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
-  // 이미지 삭제 처리
   const handleDeleteImage = (e: React.MouseEvent) => {
-    e.stopPropagation(); // 이벤트 버블링 방지
+    e.stopPropagation();
     setSelectedImage(null);
-    setValue("profileImage", DEFAULT_PROFILE_IMAGE);
-    // 파일 입력 초기화
+    setPreviewUrl(DEFAULT_PROFILE_IMAGE);
+    setValue("image", DEFAULT_PROFILE_IMAGE);
     if (fileRef.current) {
       fileRef.current.value = "";
     }
@@ -62,39 +71,19 @@ export function ProfileStep() {
     <div className="flex flex-col items-center space-y-6">
       <h2 className="text-xl font-semibold">프로필 설정</h2>
 
-      {/* 이미지 업로드 영역 */}
       <div className="flex flex-col items-center">
-        {/* 이미지 미리보기 */}
         <div
-          className="relative w-32 h-32 rounded-full overflow-hidden bg-gray-100 mb-4 cursor-pointer"
-          onClick={handleImageClick}
-          onMouseEnter={() => selectedImage && setShowDeleteIcon(true)}
-          onMouseLeave={() => setShowDeleteIcon(false)}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
         >
-          <Image
-            src={
-              selectedImage
-                ? URL.createObjectURL(selectedImage)
-                : DEFAULT_PROFILE_IMAGE
-            }
-            alt="Profile Preview"
-            width={128}
-            height={128}
-            className="w-full h-full object-cover"
+          <ProfileImagePreview
+            src={previewUrl}
+            onImageClick={handleImageClick}
+            onDelete={handleDeleteImage}
+            showDeleteIcon={isHovered && selectedImage !== null}
           />
-
-          {/* 삭제 아이콘 오버레이 */}
-          {showDeleteIcon && selectedImage && (
-            <div
-              className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center transition-opacity"
-              onClick={handleDeleteImage}
-            >
-              <X className="w-8 h-8 text-white" />
-            </div>
-          )}
         </div>
 
-        {/* 숨겨진 파일 입력 */}
         <input
           ref={fileRef}
           type="file"
@@ -103,12 +92,15 @@ export function ProfileStep() {
           className="hidden"
         />
 
-        {/* 안내 텍스트 */}
-        <p className="text-sm text-gray-500 mt-2">
-          {selectedImage
-            ? "이미지를 변경하려면 클릭하세요"
-            : "클릭하여 프로필 사진을 선택하세요"}
-        </p>
+        {isProcessing ? (
+          <p className="text-sm text-blue-500 mt-2">이미지 처리 중...</p>
+        ) : (
+          <p className="text-sm text-gray-500 mt-2">
+            {selectedImage
+              ? "이미지를 변경하려면 클릭하세요"
+              : "클릭하여 프로필 사진을 선택하세요"}
+          </p>
+        )}
       </div>
     </div>
   );

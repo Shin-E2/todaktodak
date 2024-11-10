@@ -1,28 +1,22 @@
 import GoogleProvider from "next-auth/providers/google";
 import NaverProvider from "next-auth/providers/naver";
 import KakaoProvider from "next-auth/providers/kakao";
+import CredentialsProvider from "next-auth/providers/credentials";
 import NextAuth from "next-auth/next";
 
 const handler = NextAuth({
   providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    }),
-    NaverProvider({
-      clientId: process.env.NAVER_CLIENT_ID!,
-      clientSecret: process.env.NAVER_CLIENT_SECRET!,
-    }),
-    KakaoProvider({
-      clientId: process.env.KAKAO_CLIENT_ID!,
-      clientSecret: process.env.KAKAO_CLIENT_SECRET!,
-    }),
-  ],
-  callbacks: {
-    async signIn({ user, account }) {
-      if (account?.provider) {
+    // 일반 로그인(graphql login mutation해서 nextauth로 다 통일해버리기)
+    CredentialsProvider({
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
         try {
-          // 소셜 로그인 성공 시 백엔드에 사용자 정보 전송
+          console.log("일반 로그인 시도: ", credentials);
+
+          // graphql mutation 사용하기
           const response = await fetch(
             process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT!,
             {
@@ -32,24 +26,17 @@ const handler = NextAuth({
               },
               body: JSON.stringify({
                 query: `
-                mutation SocialLogin($input: SocialLoginInput!) {
-                  socialLogin(input: $input) {
-                    token
-                    user {
-                      id
-                      email
-                      name
+                  mutation login($loginUser: loginUser!) {
+                    login(loginUser: $loginUser) {
+                      accessToken
                     }
                   }
-                }
-              `,
+                `,
                 variables: {
-                  input: {
-                    provider: account.provider,
-                    socialId: account.providerAccountId,
-                    email: user.email,
-                    name: user.name,
-                    image: user.image,
+                  loginUser: {
+                    email: credentials?.email,
+                    password: credentials?.password,
+                    dev: true, //이렇게 하라햇음
                   },
                 },
               }),
@@ -58,34 +45,95 @@ const handler = NextAuth({
 
           const data = await response.json();
 
-          if (data.data?.socialLogin) {
-            // 백엔드에서 받은 토큰을 user 객체에 저장
-            user.accessToken = data.data.socialLogin.token;
-            return true;
+          // 응답 데이터 확인용 로그
+          console.log("로그인 응답하라:", data);
+
+          if (data.data?.login?.accessToken) {
+            // user 객체를 반환하여 로그인 성공 처리
+            return {
+              id: credentials?.email!,
+              email: credentials?.email,
+              accessToken: data.data.login.accessToken,
+            };
           }
-          return false;
+
+          // 로그인 실패 시
+          console.log("일반 로그인 실패했습니다");
+          return null;
         } catch (error) {
-          console.error("Social login error:", error);
-          return false;
+          console.error("일반 로그인 실패: ", error);
+          return null;
         }
-      }
-      return false;
-    },
+      },
+    }),
+
+    /*
+    // 소셜 로그인 프로바이더들
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      profile(profile) {
+        return {
+          id: profile.sub,
+          email: profile.email,
+          name: profile.name,
+          image: profile.picture,
+          // provider를 추가하여 소셜 로그인 구분
+          provider: "google",
+        };
+      },
+    }),
+    NaverProvider({
+      clientId: process.env.NAVER_CLIENT_ID!,
+      clientSecret: process.env.NAVER_CLIENT_SECRET!,
+      profile(profile) {
+        return {
+          id: profile.id,
+          email: profile.email,
+          name: profile.name,
+          image: profile.profile_image,
+          provider: "naver",
+        };
+      },
+    }),
+    KakaoProvider({
+      clientId: process.env.KAKAO_CLIENT_ID!,
+      clientSecret: process.env.KAKAO_CLIENT_SECRET!,
+      profile(profile) {
+        return {
+          id: profile.id.toString(),
+          email: profile.kakao_account?.email,
+          name: profile.kakao_account?.profile?.nickname,
+          image: profile.kakao_account?.profile?.profile_image_url,
+          provider: "kakao",
+        };
+      },
+    }),
+    */
+  ],
+  callbacks: {
     async jwt({ token, user }) {
-      // 토큰에 백엔드에서 받은 accessToken 추가
-      if (user?.accessToken) {
+      // user 정보가 있으면 token에 추가
+      if (user) {
         token.accessToken = user.accessToken;
+        token.email = user.email;
       }
       return token;
     },
     async session({ session, token }) {
-      // 세션에 accessToken 추가
-      if (token?.accessToken) {
-        session.user.accessToken = token.accessToken as string;
+      // token 정보를 session에 추가
+      if (token) {
+        session.accessToken = token.accessToken;
       }
       return session;
     },
   },
+  pages: {
+    signIn: "/login",
+    error: "/auth/error",
+  },
+  // 디버깅을 위해 추가
+  debug: process.env.NODE_ENV === "development",
 });
 
 export { handler as GET, handler as POST };

@@ -1,8 +1,6 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFormContext } from "react-hook-form";
-
-// InputField 컴포넌트의 props 타입 정의
 interface InputFieldProps {
   name: string; // 입력 필드 이름 (React Hook Form에서 사용)
   label: string; // 라벨 텍스트

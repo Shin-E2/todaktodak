@@ -24,11 +24,11 @@ export default function SideBar() {
     <aside className="fixed top-0 left-0 w-64 h-full bg-white border-r border-gray-200">
       <div className="flex flex-col h-full">
         {/* Logo */}
-        <div className="px-6 py-8">
+        <div className="px-4 py-6 flex justify-center ">
           <Image
             src="/images/todak_logo.png"
-            width={40}
-            height={40}
+            width={170}
+            height={100}
             alt="logo"
             onClick={() => router.push("/home")}
           />

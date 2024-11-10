@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-export function SignUpLink() {
+export default function SignUpLink() {
   return (
     <div className="mt-6 text-center">
       <span className="text-sm text-gray-600">계정이 없으신가요?</span>

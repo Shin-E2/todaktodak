@@ -1,7 +1,7 @@
-import { LoginForm } from "./LoginForm";
-import { LoginHeader } from "./LoginHeader";
-import { SignUpLink } from "./SignUpLink";
-import { SocialLogin } from "./SocialLogin";
+import LoginForm from "./LoginForm";
+import LoginHeader from "./LoginHeader";
+import SignUpLink from "./SignUpLink";
+import SocialLogin from "./SocialLogin";
 
 export function LoginContainer() {
   return (

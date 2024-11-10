@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";
-import DaumPostcodeEmbed from "react-daum-postcode";
+import DaumPostcodeEmbed, { type Address } from "react-daum-postcode";
 
 interface AddressFieldProps {
   required?: boolean;
@@ -20,13 +20,13 @@ export function AddressField({ required = false }: AddressFieldProps) {
   const {
     register,
     setValue,
-    formState: { errors },
+    // formState: { errors },
   } = useFormContext();
 
   // 주소 검색 완료 핸들러
-  const handleComplete = (data: any) => {
-    setValue("address.zoneCode", data.zonecode);
-    setValue("address.address", data.address);
+  const handleComplete = (address: Address) => {
+    setValue("addressInput.zoneCode", address.zonecode);
+    setValue("addressInput.address", address.address);
     setIsOpen(false);
   };
 
@@ -41,7 +41,7 @@ export function AddressField({ required = false }: AddressFieldProps) {
       {/* 우편번호 입력 */}
       <div className="flex gap-2">
         <Input
-          {...register("address.zoneCode")}
+          {...register("addressInput.zoneCode")}
           placeholder="우편번호"
           disabled
           className="w-32"
@@ -53,7 +53,7 @@ export function AddressField({ required = false }: AddressFieldProps) {
 
       {/* 기본 주소 입력 */}
       <Input
-        {...register("address.address")}
+        {...register("addressInput.address")}
         placeholder="기본 주소"
         disabled
         className="w-full"
@@ -61,25 +61,25 @@ export function AddressField({ required = false }: AddressFieldProps) {
 
       {/* 상세 주소 입력 */}
       <Input
-        {...register("address.detailAddress")}
+        {...register("addressInput.detailAddress")}
         placeholder="상세 주소를 입력해주세요"
         className="w-full"
       />
 
       {/* 에러 메시지 표시 */}
-      {(errors.address?.zonecode ||
-        errors.address?.address ||
-        errors.address?.detailAddress) && (
+      {/*       {(errors.addressInput?.zoneCode ||
+        errors.addressInput?.address ||
+        errors.addressInput?.detailAddress) && (
         <p className="text-sm text-red-500">
           {
             (
-              errors.address?.zonecode ||
-              errors.address?.address ||
-              errors.address?.detailAddress
+              errors.addressInput?.zoneCode ||
+              errors.addressInput?.address ||
+              errors.addressInput?.detailAddress
             )?.message as string
           }
         </p>
-      )}
+      )} */}
 
       {/* 우편번호 검색 모달 */}
       <Dialog open={isOpen} onOpenChange={setIsOpen}>

@@ -1,6 +1,6 @@
 import { SocialButton } from "../shared/SocialButton";
 
-export function SocialLogin() {
+export default function SocialLogin() {
   return (
     <>
       <div className="my-6 flex items-center">
