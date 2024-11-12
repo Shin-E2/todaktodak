@@ -2,6 +2,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { Calendar, BarChart2, User, BookOpen, BookHeart } from "lucide-react";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
+import UserProfileSection from "./components/sideBar/UserProfileSection";
 
 interface NavItem {
   icon: React.ElementType;
@@ -69,35 +70,7 @@ export default function SideBar() {
         </nav>
 
         {/* User Profile */}
-        <div
-          onClick={() => router.push("/profile")}
-          className="p-4 border-t cursor-pointer hover:bg-gray-50"
-        >
-          <div className="flex items-center space-x-3">
-            {/* profile image */}
-            {session?.user.image ? (
-              <div className="w-10 h-10 rounded-full overflow-hidden">
-                <Image
-                  src={session.user.image}
-                  alt="Profile"
-                  width={40}
-                  height={40}
-                  className="object-cover rounded-full w-full h-full"
-                />
-              </div>
-            ) : (
-              // 이미지 없으면 기본 이미지 뜨게 해야하나
-              <div className="w-10 h-10 rounded-full bg-gray-200" />
-            )}
-            <div>
-              <div className="font-medium text-gray-800">
-                {/* nickname이 없을 경우에 여기 어떻게 뜨게 하지 */}
-                {session?.user?.nickname ?? "아직없어요(추후넣던가)"}
-              </div>
-              <div className="text-sm text-gray-500">내 프로필</div>
-            </div>
-          </div>
-        </div>
+        <UserProfileSection session={session} />
       </div>
     </aside>
   );
