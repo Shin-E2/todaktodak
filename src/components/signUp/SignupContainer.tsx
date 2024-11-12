@@ -13,7 +13,7 @@ import { AlertDialog } from "./common/SignupAlertDialog";
 import { signupSchema, type SignupFormValues } from "@/schemas/auth.schema";
 import { undefined } from "zod";
 
-// 회원가입의 각 단계를 정의하는 배열
+// 회원가입의 각 단계
 // fields는 각 단계에서 검증해야 할 폼 필드들을 나타냄
 const SIGNUP_STEPS = [
   {
@@ -39,7 +39,6 @@ const SIGNUP_STEPS = [
   },
 ] as const;
 
-// GraphQL mutation 쿼리 정의
 const SIGNUP = gql`
   mutation signup($signUpUserInput: SignUpUserInput!, $file: Upload) {
     signup(signUpUserInput: $signUpUserInput, file: $file)
@@ -47,10 +46,9 @@ const SIGNUP = gql`
 `;
 
 export default function SignupContainer() {
-  // 현재 회원가입 단계를 관리하는 상태 (0: 기본정보, 1: 프로필설정)
+  // 현재 회원가입 단계(0: 기본정보, 1: 프로필설정)
   const [currentStep, setCurrentStep] = useState(0);
 
-  // 알림창(Alert) 상태 관리
   const [alertState, setAlertState] = useState<{
     open: boolean;
     title: string;
@@ -62,15 +60,13 @@ export default function SignupContainer() {
     description: "",
   });
 
-  // Next.js 라우터
   const router = useRouter();
 
-  // GraphQL mutation 훅
   const [signup] = useMutation(SIGNUP);
 
   // React Hook Form 설정
   const methods = useForm<SignupFormValues>({
-    resolver: zodResolver(signupSchema), // zod를 사용한 유효성 검사
+    resolver: zodResolver(signupSchema),
     mode: "onBlur", // 필드에서 포커스가 벗어날 때 유효성 검사
     defaultValues: {
       name: "",
@@ -87,18 +83,17 @@ export default function SignupContainer() {
     },
   });
 
-  // 현재 단계 관련 정보 계산
   const currentStepData = SIGNUP_STEPS[currentStep];
   const isLastStep = currentStep === SIGNUP_STEPS.length - 1;
-  const progress = (currentStep / (SIGNUP_STEPS.length - 1)) * 100;
+  // currentStep이 0일 때 50%, 1일 때 100%
+  const progress = ((currentStep + 1) / SIGNUP_STEPS.length) * 100;
 
-  // 다음 단계로 이동하는 함수
+  // 다음
   const handleNext = async () => {
-    // 현재 단계의 필드들에 대한 유효성 검사 실행
+    // 유효성 검사
     const isValid = await methods.trigger(currentStepData.fields);
 
     if (isValid) {
-      // 유효성 검사 통과 시 현재 데이터 로깅
       const currentFormData = methods.getValues();
       console.log("현재 스텝 데이터:", {
         step: currentStepData.label,
@@ -110,12 +105,11 @@ export default function SignupContainer() {
     }
   };
 
-  // 이전 단계로 이동하는 함수
+  // 이전
   const handlePrev = () => {
     setCurrentStep((prev) => prev - 1);
   };
 
-  // 알림창 닫기 처리
   const handleAlertClose = () => {
     setAlertState((prev) => ({ ...prev, open: false }));
 
@@ -125,7 +119,6 @@ export default function SignupContainer() {
     }
   };
 
-  // 폼 제출 처리
   const onSubmit = async (data: SignupFormValues) => {
     if (!isLastStep) {
       handleNext();
@@ -260,7 +253,9 @@ export default function SignupContainer() {
 
                 <Button
                   type="submit"
-                  className={currentStep === 0 ? "ml-auto" : ""}
+                  className={
+                    currentStep === 0 ? "ml-auto hover:bg-indigo-600" : ""
+                  }
                 >
                   {isLastStep ? "가입완료" : "다음"}
                 </Button>
