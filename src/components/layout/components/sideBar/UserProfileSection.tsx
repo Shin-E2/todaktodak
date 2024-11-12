@@ -1,15 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
-import type { Session } from "next-auth";
 import ProfileButton from "./ProfileButton";
 import Dropdown from "./Dropdown";
 
-interface UserProfileSectionProps {
-  session: Session | null;
-}
-
-export default function UserProfileSection({
-  session,
-}: UserProfileSectionProps) {
+export default function UserProfileSection() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   // DOM 요소: useRef, dropdownRef.current는 실제 DOM 요소에 접근 가능
@@ -45,7 +38,6 @@ export default function UserProfileSection({
   return (
     <div className="relative" ref={dropdownRef} onKeyDown={handleKeyDown}>
       <ProfileButton
-        session={session}
         isDropdownOpen={isDropdownOpen}
         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
       />

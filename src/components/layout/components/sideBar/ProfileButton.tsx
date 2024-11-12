@@ -1,17 +1,18 @@
 import Image from "next/image";
-import type { Session } from "next-auth";
+import { useSession } from "next-auth/react";
 
 interface ProfileButtonProps {
-  session: Session | null;
   isDropdownOpen: boolean;
   onClick: () => void;
 }
 
 export default function ProfileButton({
-  session,
   isDropdownOpen,
   onClick,
 }: ProfileButtonProps) {
+  // 로그인한 사용자 정보
+  const { data: session } = useSession();
+
   const userName = session?.user?.name ?? "사용자";
   const userImage = session?.user?.image ?? `/images/default-profile.png`;
 
