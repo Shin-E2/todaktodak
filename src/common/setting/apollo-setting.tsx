@@ -5,10 +5,10 @@ import createUploadLink from "apollo-upload-client/createUploadLink.mjs";
 
 const uploadLink = createUploadLink({
   uri: process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT,
-  /*   deleteUser할때 cors발생해서 일단 주석..
-  headers: {
-    "Apollo-Require-Preflight": "true",
-  }, */
+  //  deleteUser할때 cors발생해서 일단 주석..
+  // headers: {
+  //   "Apollo-Require-Preflight": "true",
+  // },
   headers: {
     "Content-Type": "application/json",
   },

@@ -41,8 +41,8 @@ const SIGNUP_STEPS = [
 
 // GraphQL mutation 쿼리 정의
 const SIGNUP = gql`
-  mutation signup($signUpUser: SignUpUser!, $file: Upload) {
-    signup(signUpUser: $signUpUser, file: $file)
+  mutation signup($signUpUserInput: SignUpUserInput!, $file: Upload) {
+    signup(signUpUserInput: $signUpUserInput, file: $file)
   }
 `;
 
@@ -138,54 +138,73 @@ export default function SignupContainer() {
 
       console.log("image: ", image);
 
-      /*  // file이 기본 이미지인 경우 null로 처리
-      const fileToUpload = typeof file === "string" ? null : file; */
-
-      // 파일 입력에서 직접 File 객체 가져오기
-      const fileInput = document.querySelector(
-        'input[type="file"]'
-      ) as HTMLInputElement;
-      const file = fileInput?.files?.[0];
+      // 이미지 파일 처리
+      let fileToUpload;
+      if (image instanceof File) {
+        // 사용자가 이미지를 선택한 경우
+        fileToUpload = image;
+      } else {
+        // 이미지를 선택하지 않은 경우 기본 이미지 파일로 변환
+        const response = await fetch("/images/defaultProfile.png");
+        const blob = await response.blob();
+        fileToUpload = new File([blob], "defaultProfile.png", {
+          type: "image/png",
+        });
+      }
 
       console.log("제외 전송하는 비번확인: ", passwordConfirm);
       console.log("전송할 데이터: ", signupData);
 
+      // 주소 데이터 처리
+      const addressData = signupData.address?.zoneCode
+        ? {
+            zoneCode: Number(signupData.address?.zoneCode),
+            address: signupData.address?.address || "",
+            detailAddress: signupData.address?.detailAddress || "",
+          }
+        : undefined; // 주소를 입력하지 않은 경우 undefined로 처리
+
+      // 회원가입 mutation 변수
+      const variables = {
+        signUpUserInput: {
+          ...signupData,
+          address: addressData,
+        },
+        file: fileToUpload, // 항상 File 객체 보냄
+      };
+
+      console.log("전송할 데이터:", variables);
+
       // 회원가입 mutation 실행
       const result = await signup({
-        variables: {
-          signUpUser: {
-            ...signupData,
-            // 주소는 zoneCode가 int!!!!!!!!
-            address: {
-              ...signupData.address,
-              zoneCode: Number(signupData.address.zoneCode), // 변환해주기
-              address: signupData.address.address,
-              detailAddress: signupData.address.detailAddress,
-            },
-          },
-          // file이 있을 때만 file 필드 추가
-          // ...(file ? { file } : {}),
-          file: image || undefined,
-        },
+        variables: variables,
       });
-      console.log("선택한 사진: ", file);
-      console.log("회원가입 성공:", result.data);
-
-      setAlertState({
-        open: true,
-        title: "회원가입 성공",
-        description: "회원가입이 완료되었습니다. 로그인 페이지로 이동합니다.",
-        error: false,
-      });
+      // 성공 여부 확인
+      if (result.data?.signup) {
+        setAlertState({
+          open: true,
+          title: "회원가입 성공",
+          description: "회원가입이 완료되었습니다. 로그인 페이지로 이동합니다.",
+          error: false,
+        });
+      } else {
+        throw new Error("회원가입 처리 중 오류가 발생했습니다.");
+      }
     } catch (error) {
+      console.error("회원가입 에러:", error);
+
+      // GraphQL 에러 메시지
       const errorMessage =
         error.graphQLErrors?.[0]?.extensions?.originalError?.message?.message ||
+        error.message ||
         "회원가입 처리 중 오류가 발생했습니다.";
 
       setAlertState({
         open: true,
         title: "오류 발생",
-        description: errorMessage,
+        description: Array.isArray(errorMessage)
+          ? errorMessage.join("\n")
+          : errorMessage,
         error: true,
       });
     }
