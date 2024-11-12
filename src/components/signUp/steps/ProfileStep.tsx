@@ -2,7 +2,7 @@ import { ProfileImagePreview } from "@/components/profile/ProfileImagePreview";
 import { useRef, useState } from "react";
 import { useFormContext } from "react-hook-form";
 
-export const DEFAULT_PROFILE_IMAGE = `/images/default-profile.png`;
+export const DEFAULT_PROFILE_IMAGE = `/images/defaultProfile.png`;
 
 export function ProfileStep() {
   const { setValue } = useFormContext();

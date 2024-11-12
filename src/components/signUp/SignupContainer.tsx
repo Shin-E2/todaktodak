@@ -13,10 +13,6 @@ import { AlertDialog } from "./common/SignupAlertDialog";
 import { signupSchema, type SignupFormValues } from "@/schemas/auth.schema";
 import { undefined } from "zod";
 
-export const BUCKET_NAME = "todakProfileImage";
-export const DEFAULT_PROFILE_IMAGE = `/images/default-profile.png`;
-export const STORAGE_URL = `https://storage.googleapis.com/${BUCKET_NAME}`;
-
 // 회원가입의 각 단계를 정의하는 배열
 // fields는 각 단계에서 검증해야 할 폼 필드들을 나타냄
 const SIGNUP_STEPS = [
