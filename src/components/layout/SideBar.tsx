@@ -91,7 +91,8 @@ export default function SideBar() {
             )}
             <div>
               <div className="font-medium text-gray-800">
-                {session?.user?.nickname}
+                {/* nickname이 없을 경우에 여기 어떻게 뜨게 하지 */}
+                {session?.user?.nickname ?? "아직없어요(추후넣던가)"}
               </div>
               <div className="text-sm text-gray-500">내 프로필</div>
             </div>
